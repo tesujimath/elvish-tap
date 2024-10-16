@@ -16,7 +16,9 @@ not ok 1 - simple fail
 ok 2 - easy pass
 '
 
-if (not-eq $actual $expected) {
+if (eq $actual $expected) {
+  echo "all tests passed"
+} else {
   put actual $actual expected $expected
-  fail "unexpected output"
+  fail "tests failed"
 }
