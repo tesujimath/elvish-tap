@@ -1,18 +1,21 @@
 # elvish-tap
 
-An early-stage implementation of [Test Anything Protocol](https://testanything.org/) (TAP) for [Elvish](https://elv.sh/).
-
-It is being for [TAP13](https://testanything.org/tap-version-13-specification.html).
+An early-stage implementation of [Test Anything Protocol](https://testanything.org/) (TAP) for [Elvish](https://elv.sh/),
+targeting [TAP13](https://testanything.org/tap-version-13-specification.html).
 
 ## Example Usage
 
 ```
-tap:run [[&d='simple fail' &f={ put $false [&reason='oops']}] [&d='nothing to do' &f={ put $true }]]
+> tap:run [[&d='simple fail' &f={ put $false [&expected=[&A=a &B=b] &actual=[&A=1]]}] [&d='nothing to do' &f={ put $true }]]
 TAP version 13
 1..2
 not ok 1 - simple fail
   ---
-    reason: 'oops'
+  actual:
+    A: '1'
+  expected:
+    A: a
+    B: b
   ...
 ok 2 - nothing to do
 ```
@@ -20,7 +23,7 @@ ok 2 - nothing to do
 In general, TAP output should be piped to a TAP consumer.
 
 ```
-> tap:run [[&d='simple fail' &f={ put $false [&reason='oops']}] [&d='nothing to do' &f={ put $true }]] | tappy
+> tap:run [[&d='simple fail' &f={ put $false [&expected=[&A=a &B=b] &actual=[&A=1]]}] [&d='nothing to do' &f={ put $true }]] | tappy
 F.
 ======================================================================
 FAIL: <file=stream>
@@ -32,8 +35,19 @@ Ran 2 tests in 0.000s
 
 FAILED (failures=1)
 Exception: tappy exited with 1
-  [tty 14]:1:105-110: tap:run [[&d='simple fail' &f={ put $false [&reason='oops']}] [&d='nothing to do' &f={ put $true }]]  | tappy
+  [tty 7]:1:126-130: tap:run [[&d='simple fail' &f={ put $false [&expected=[&A=a &B=b] &actual=[&A=1]]}] [&d='nothing to do' &f={ put $true }]] |
+ tappy
 ```
+
+## Tests
+
+`tap:run` takes a list of tests.  Each test is a map
+
+ A test comprises a map with the following keys:
+ - `d` - a string, the test name or description
+ - `f` - a function of no arguments, outputing one or two results.
+         The first result is a boolean, $true for success
+         The optional second result is a map, which is converted to YAML and included as a TAP YAML block.
 
 ## Dependencies
 
