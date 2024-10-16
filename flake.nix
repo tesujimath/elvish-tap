@@ -24,6 +24,8 @@
                 python3Packages.tappy
                 python3Packages.pyyaml
                 python3Packages.more-itertools
+
+                yq
               ];
             };
         }

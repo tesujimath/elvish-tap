@@ -34,3 +34,7 @@ FAILED (failures=1)
 Exception: tappy exited with 1
   [tty 14]:1:105-110: tap:run [[&d='simple fail' &f={ put $false [&reason='oops']}] [&d='nothing to do' &f={ put $true }]]  | tappy
 ```
+
+## Dependencies
+
+If YAML blocks are used, then `yq` is required.

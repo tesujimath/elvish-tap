@@ -34,11 +34,8 @@ fn -validate {|tests|
 
 fn -tap-yaml {|doc|
   echo '  ---'
-  keys $doc | each {|k|
-    var v = $doc[$k]
-    if (eq (kind-of $v string)) {
-      echo '    '$k': '''$v''''
-    }
+  put $doc | to-json | yq --yaml-output --sort-keys | from-lines | each {|line|
+    echo '  '$line
   }
   echo '  ...'
 }
