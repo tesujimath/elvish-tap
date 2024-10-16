@@ -71,7 +71,7 @@ fn -tap-pass {|i d|
 fn run {|tests|
   -validate $tests
 
-  echo 'TAP version 14'
+  echo 'TAP version 13'
   echo '1..'(count $tests)
 
   var i = 0
