@@ -9,9 +9,12 @@ use str
 # - `d` - a string, the test name or description
 # - `f` - a function of no arguments, outputing one or two results.
 #         The first result is a boolean, $true for success
-#         The optional second result is a map, which is converted to YAML and included as a TAP YAML block.
+#         The optional second result is a map, with the following optional fields:
+#         - `skip` - test is skipped,
+#         - `todo` - test is TODO,
+#         - `doc` - additional documentation map, included as a TAP YAML block.
 fn run {|tests|
-  fn -validate {|tests|
+  fn validate {|tests|
     var tests-kind = (kind-of $tests)
     if (not-eq $tests-kind list) {
       fail 'tests must be list, found '$tests-kind
@@ -45,7 +48,7 @@ fn run {|tests|
     }
   }
 
-  fn -tap-yaml {|doc|
+  fn write-yaml-block {|doc|
     echo '  ---'
     put $doc | to-json | yq --yaml-output --sort-keys | from-lines | each {|line|
       echo '  '$line
@@ -53,24 +56,29 @@ fn run {|tests|
     echo '  ...'
   }
 
-  fn -tap-result {|i d ok &doc=[&]|
+  fn write-result {|i d ok &a=[&]|
     var status = (if $ok { put 'ok' } else { put 'not ok' })
-    echo $status' '$i' - '$d
+    var directive = (
+      if (has-key $a skip) {
+        put ' # skip'
+      } elif (has-key $a todo) {
+        put ' # todo'
+      } else {
+        put ''
+      }
+    )
+    echo $status' '$i' - '$d$directive
 
-    if (not-eq $doc [&]) {
-      -tap-yaml $doc
+    if (has-key $a doc) {
+      write-yaml-block $a[doc]
     }
   }
 
-  fn -tap-fail {|i d &doc=[&]|
-    -tap-result $i $d $false &doc=$doc
+  fn write-fail {|i d &doc=[&]|
+    write-result $i $d $false &a=[&doc=$doc]
   }
 
-  fn -tap-pass {|i d|
-    -tap-result $i $true $d
-  }
-
-  -validate $tests
+  validate $tests
 
   echo 'TAP version 13'
   echo '1..'(count $tests)
@@ -83,20 +91,20 @@ fn run {|tests|
     # TODO catch exception in test
     var result = ($test[f] | put [(all)])
     if (== (count $result) 0) {
-      -tap-fail $i $test[d] &doc=[&reason='test function returned no status']
+      write-fail $i $test[d] &doc=[&reason='test function returned no status']
     } elif (> (count $result) 2) {
-      -tap-fail $i $test[d] &doc=[&reason='test function returned '(count $result)' results, expected 1 or 2']
+      write-fail $i $test[d] &doc=[&reason='test function returned '(count $result)' results, expected 1 or 2']
     } elif (not-eq (kind-of $result[0]) bool) {
-      -tap-fail $i $test[d] &doc=[&reason='test function returned first result of type '(kind-of $result[0])', expected bool']
+      write-fail $i $test[d] &doc=[&reason='test function returned first result of type '(kind-of $result[0])', expected bool']
     } else {
       if (== (count $result) 2) {
         if (not-eq (kind-of $result[1]) map) {
-          -tap-fail $i $test[d] &doc=[&reason='test function returned second result of type '(kind-of $result[1])', expected map']
+          write-fail $i $test[d] &doc=[&reason='test function returned second result of type '(kind-of $result[1])', expected map']
         } else {
-          -tap-result $i $test[d] $result[0] &doc=$result[1]
+          write-result $i $test[d] $result[0] &a=$result[1]
         }
       } else {
-        -tap-result $i $test[d] $result[0]
+        write-result $i $test[d] $result[0]
       }
     }
   }

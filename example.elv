@@ -3,13 +3,17 @@
 use ./tap
 
 echo
-tap:run [[&d='pass' &f={ put $true }] [&d='easy pass' &f={ put $true }]] | tap:status
+tap:run [
+  [&d='bothersome' &f={ put $false [&skip] }]
+  [&d='easy pass' &f={ put $true }]
+  [&d='not yet implemented' &f={ put $false [&todo] }]
+] | tap:status
 
 echo
-tap:run [[&d='simple fail' &f={ put $false }] [&d='easy pass' &f={ put $true }]] | tap:status
+tap:run [[&d='simple fail' &f={ put $false }] [&d='easy pass' &f={ put $true [&doc=enlightening] }]] | tap:status
 
 echo
-tap:run [[&d='simple fail' &f={ put $false [&expected=[&A=a] &actual=[&A=b]]}] [&d='easy pass' &f={ put $true }]] | tap:status
+tap:run [[&d='simple fail' &f={ put $false [&doc=[&expected=[&A=a] &actual=[&A=b]]]}] [&d='easy pass' &f={ put $true }]] | tap:status
 
 echo
 echo 'TAP version 14

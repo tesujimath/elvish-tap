@@ -44,10 +44,14 @@ Exception: tappy exited with 1
 `tap:run` takes a list of tests.  Each test is a map
 
  A test comprises a map with the following keys:
+
  - `d` - a string, the test name or description
  - `f` - a function of no arguments, outputing one or two results.
          The first result is a boolean, $true for success
-         The optional second result is a map, which is converted to YAML and included as a TAP YAML block.
+         The optional second result is a map, with the following optional fields:
+         - `skip` - test is skipped,
+         - `todo` - test is TODO,
+         - `doc` - additional documentation map, included as a TAP YAML block.
 
 ## Dependencies
 
