@@ -180,18 +180,19 @@ fn status {
     }
   }
 
-  fn n-tests {|n|
-    if (> $n 1) {
-      put $n' tests'
+  fn plural {|n|
+    if (== $n 1) {
+      put ''
     } else {
-      put $n' test'
+      put 's'
     }
   }
 
   var red = "\e[31m"
   var yellow = "\e[33m"
   var green = "\e[32m"
-  var normal = "\e[39m"
+  var bold = "\e[1m"
+  var normal = "\e[39;0m"
 
   var plan = $false
   var n-plan = 0
@@ -241,24 +242,30 @@ fn status {
   }
 
   # summary
-  if (> $n-skip 0) {
-    echo $yellow'warning: '(n-tests $n-skip)' skipped'$normal
-  }
-  if (> $n-todo 0) {
-    echo $yellow'warning: '(n-tests $n-todo)' todo'$normal
+  set colour = (
+    if (> $n-fail 0) {
+      put $red
+    } elif (or (> $n-skip 0) (> $n-todo 0)) {
+      put $yellow
+    } else {
+      put $green
+    }
+  )
+  echo
+  print $bold$colour$n-plan' tests'
+  if (> $n-pass 0) {
+    print ', '$n-pass' passed'
   }
   if (> $n-fail 0) {
-    echo $red'error: '(n-tests $n-fail)' failed'$normal
-  } else {
-    print $green'all tests passed'
-    if (> $n-skip 0) {
-      print ' or skipped'
-    }
-    if (> $n-todo 0) {
-      print ' or todo'
-    }
-    echo $normal
+    print ', '$n-fail' failed'
   }
+  if (> $n-skip 0) {
+    print ', '$n-skip' skipped'
+  }
+  if (> $n-todo 0) {
+    print ', '$n-todo' todo'
+  }
+  echo $normal
 
   put (== $n-fail 0)
 }
