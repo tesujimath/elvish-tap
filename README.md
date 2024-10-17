@@ -1,6 +1,6 @@
 # elvish-tap
 
-An early-stage implementation of [Test Anything Protocol](https://testanything.org/) (TAP) for [Elvish](https://elv.sh/),
+An implementation of [Test Anything Protocol](https://testanything.org/) (TAP) for [Elvish](https://elv.sh/),
 targeting [TAP13](https://testanything.org/tap-version-13-specification.html).
 
 ## Example Usage
@@ -41,9 +41,10 @@ In general, TAP output should be piped to a TAP consumer (see below).
  - `f` - a function of no arguments, outputing one or two results.
          The first result is a boolean, $true for success
          The optional second result is a map, with the following optional fields:
-         - `skip` - test is skipped,
-         - `todo` - test is TODO,
-         - `doc` - additional documentation map, included as a TAP YAML block.
+
+       - `skip` - test is skipped,
+       - `todo` - test is TODO,
+       - `doc` - additional documentation map, included as a TAP YAML block.
 
 ## Dependencies
 
