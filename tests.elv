@@ -8,9 +8,10 @@ var actual = (tap:run [
     [&d='easy pass' &f={ put [&ok=$true] }]
     [&d='skipped failure' &f={ put [&ok=$true] } &skip]
     [&d='not yet implemented' &f={ fail 'oops' } &todo]
+    [&d='unexpected failure' &f={ fail 'oops' }]
   ] | slurp)
 var expected = 'TAP version 13
-1..4
+1..5
 not ok 1 - simple fail
   ---
   actual:
@@ -21,6 +22,11 @@ not ok 1 - simple fail
 ok 2 - easy pass
 ok 3 - skipped failure # skip
 ok 4 - not yet implemented # todo
+not ok 5 - unexpected failure
+  ---
+  exception:
+    Content: oops
+  ...
 '
 
 if (eq $actual $expected) {

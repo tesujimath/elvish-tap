@@ -142,9 +142,10 @@ fn run {|tests|
       continue
     }
 
-    # TODO catch exception in test
-    var results = ($test[f] | put [(all)])
-    if (== (count $results) 0) {
+    var results = (var f_ok = ?($test[f] | put [(all)]))
+    if (not $f_ok) {
+      write-result $i-test $test [&ok=$false &exception=$f_ok[reason]]
+    } elif (== (count $results) 0) {
       # no results, which we interpret as todo
       write-result $i-test (assoc $test todo $true) [&ok &reason='test function wrote no result']
     } else {
