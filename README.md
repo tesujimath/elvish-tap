@@ -67,6 +67,38 @@ If YAML blocks are used, then `yq` is required, otherwise they are elided.
 
 Exiting can be overridden by passing `&exit=$false`, which causes the overall result to be returned as a boolean.
 
+## Examples
+
+See [example.elv](examples/example.elv).
+
+```
+> ./examples/example.elv
+✗ 1 - bothersome # skip
+✗ 2 - easy pass (2 results)
+  ---
+  '1':
+    ok: true
+  '2':
+    ok: false
+  ...
+✗ 3 - not yet implemented # todo
+✗ 4 - simple fail
+✓ 5 - easy pass
+  ---
+  state: enlightened
+  ...
+✗ 6 - simple fail # skip
+  ---
+  actual:
+    A: b
+  expected:
+    A: a
+  ...
+
+6 tests, 1 passed, 2 failed, 2 skipped, 1 todo
+▶ $false
+```
+
 ## Future work
 
 Multiple results are not yet in fact implemented as TAP subtests (requires TAP14), but simply squished together into

@@ -1,6 +1,6 @@
 #!/usr/bin/env elvish
 
-use ./tap
+use ../tap
 
 tap:run [
   [&d='bothersome' &f={ put [&ok=$false &skip] }]
