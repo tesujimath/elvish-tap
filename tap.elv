@@ -110,83 +110,66 @@ fn status {
     { re:find &max=1 $pattern $source ; put [&] } | take 1
   }
 
-  var red = "\e[31m"
-  var yellow = "\e[33m"
-  var green = "\e[32m"
-  var normal = "\e[39m"
-
-  var first-line = $true
-  var plan = $false
-  var n_plan = 0
-  var n_pass = 0
-  var n_fail = 0
-  var n_skip = 0
-  var n_todo = 0
-  var in_yaml = $false
-  var bail_out = $false
-  var colour = $normal
-
-  from-lines | each {|line|
-    var output = $line
-
-    if (and $first-line (str:has-prefix $line 'TAP version')) {
-      # skip protocol line
-      set output = $nil
+  fn parse-line {|line|
+    if (str:has-prefix $line 'TAP version') {
+      put [&type=version]
     } else {
       # plan
       var m = (find-one '^1\.\.(\d+)' $line)
       if (has-key $m start) {
-        set plan = $true
-        set n_plan = (num $m[groups][1][text])
-        set output = $nil
+        put [
+          &type=plan
+          &n=(num $m[groups][1][text])
+        ]
       } else {
         # test point
-        var m = (find-one '^(not *)?ok( *(\d+))?( *-)? *([^#]*)( *# *(\w*)( *(.*))?)?$' $line)
+        var m = (find-one '^(not *)?ok *((\d+)?( *-)? *([^#]*)( *# *(\w*)( *(.*))?)?)$' $line)
         if (has-key $m start) {
-          var ok = (eq $m[groups][1][text] '')
-          var directive-type = (str:to-lower $m[groups][7][text])
-          var status = (if $ok { put '✓' } else { put '✗' })
-          var description = $m[groups][5][text]
-          var directive = $m[groups][6][text]
-
-          set colour = (
-            if (==s $directive-type "skip") {
-              put $yellow
-            } elif (==s $directive-type "todo") {
-              put $yellow
-            } elif $ok {
-              put $green
-            } else {
-              put $red
-            }
-          )
-          set output = $status' '$description$directive
+          var pass = (eq $m[groups][1][text] '')
+          var status = (if $pass { put '✓' } else { put '✗' })
+          put [
+            &type=test-point
+            &pass=$pass
+            &directive=(str:to-lower $m[groups][7][text])
+            &text=$status' '$m[groups][2][text]
+          ]
         } else {
-          # YAML start
+          # begin YAML
           var m = (find-one '^ *---' $line)
           if (has-key $m start) {
-            set in_yaml = $true
+            put [
+              &type=begin-yaml
+              &text=$line
+            ]
           } else {
-            # YAML end
+            # end YAML
             var m = (find-one '^ *\.\.\.' $line)
             if (has-key $m start) {
-              set in_yaml = $false
+              put [
+                &type=end-yaml
+                &text=$line
+              ]
             } else {
               # bail out
               var m = (find-one '^Bail out!' $line)
               if (has-key $m start) {
-                set bail_out = $true
-                set colour = $red
+                put [
+                  &type=end-yaml
+                  &text=$line
+                ]
               } else {
                 # empty
                 var m = (find-one '^\s*$' $line)
                 if (has-key $m start) {
-                  # empty
-                } elif $in_yaml {
-                  # do the default thing
+                  put [
+                    &type=empty
+                    &text=$line
+                  ]
                 } else {
-                  # unsupported
-                  set colour = $yellow
+                  put [
+                    &type=unknown
+                    &text=$line
+                  ]
                 }
               }
             }
@@ -194,11 +177,53 @@ fn status {
         }
       }
     }
+  }
 
-    if (not-eq $output $nil) {
-      echo $colour$output$normal
+  var red = "\e[31m"
+  var yellow = "\e[33m"
+  var green = "\e[32m"
+  var normal = "\e[39m"
+
+  var plan = $false
+  var n-plan = 0
+  var n-pass = 0
+  var n-fail = 0
+  var n-skip = 0
+  var n-todo = 0
+  var in-yaml = $false
+  var bail_out = $false
+  var colour = $normal
+
+  from-lines | each {|line|
+    var parsed = (parse-line $line)
+
+    if (==s plan $parsed[type]) {
+      set n-plan = $parsed[n]
+    } elif (==s test-point $parsed[type]) {
+      set colour = (
+        if (==s skip $parsed[directive]) {
+          put $yellow
+        } elif (==s todo $parsed[directive]) {
+          put $yellow
+        } elif $parsed[pass] {
+          put $green
+        } else {
+          put $red
+        }
+      )
+    } elif (==s begin-yaml $parsed[type]) {
+      set in-yaml = $true
+    } elif (==s end-yaml $parsed[type]) {
+      set in-yaml = $false
+    } elif (==s bail-out $parsed[type]) {
+      set bail_out = $true
+      set colour = $red
+    } elif (and (==s unknown $parsed[type]) (not $in-yaml)) {
+      set colour = $yellow
     }
 
-    set first-line = $false
+    if (has-key $parsed text) {
+      echo $colour$parsed[text]$normal
+    }
   }
 }

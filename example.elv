@@ -2,23 +2,13 @@
 
 use ./tap
 
-echo 'output of tap:run'
+echo
 tap:run [[&d='simple fail' &f={ put $false }] [&d='easy pass' &f={ put $true }]] | tap:status
 
+echo
 tap:run [[&d='simple fail' &f={ put $false [&expected=[&A=a] &actual=[&A=b]]}] [&d='easy pass' &f={ put $true }]] | tap:status
 
-# echo
-# echo 'made up output'
-# echo 'TAP version 14
-# 1..4
-# ok 1 - Input file opened
-# not ok 2 - First line of the input valid
-# ok 3 - Read the rest of the file
-# not ok 4 - Summarized correctly # TODO Not written yet
-# Bail out!
-# ' | tap:status
-
-echo 'made up output'
+echo
 echo 'TAP version 14
 1..4
 ok 1 - Input file opened
