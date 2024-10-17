@@ -3,6 +3,8 @@
 An implementation of [Test Anything Protocol](https://testanything.org/) (TAP) for [Elvish](https://elv.sh/),
 targeting [TAP13](https://testanything.org/tap-version-13-specification.html).
 
+<img src="https://raw.githubusercontent.com/tesujimath/elvish-tap/main/examples/images/elvish-tap-example.png" alt="Example tap:status output"/>
+
 ## Example Usage
 
 ```
