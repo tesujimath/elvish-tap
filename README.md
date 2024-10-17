@@ -7,36 +7,52 @@ targeting [TAP13](https://testanything.org/tap-version-13-specification.html).
 
 ```
 > tap:run [
-    [&d='simple fail' &f={ put [&ok=$false &doc=[&expected=[&A=a &B=b] &actual=[&A=1]]] }]
-    [&d='nothing to do' &f={ put [&ok=$true] }]]
+    [&d='unreasonable expectation' &f={
+      var actual = [&A=1]
+      tap:assert-expected $actual [&expected=[&A=a &B=b]]
+    }]
+
+    [&d='simple truth' &f={
+      tap:assert $true
+    }]]
+
 TAP version 13
 1..2
-not ok 1 - simple fail
+not ok 1 - unreasonable expectation
   ---
   actual:
     A: '1'
   expected:
-    A: a
-    B: b
+    expected:
+      A: a
+      B: b
   ...
-ok 2 - nothing to do
+ok 2 - simple truth
 ```
 
 In general, TAP output should be piped to a TAP consumer (see below).
 
 ```
 > tap:run [
-    [&d='simple fail' &f={ put [&ok=$false &doc=[&expected=[&A=a &B=b] &actual=[&A=1]]] }]
-    [&d='nothing to do' &f={ put [&ok=$true] }]] | tap:status &exit=$false
-✗ 1 - simple fail
+         [&d='unreasonable expectation' &f={
+           var actual = [&A=1]
+           tap:assert-expected $actual [&expected=[&A=a &B=b]]
+         }]
+
+         [&d='simple truth' &f={
+           tap:assert $true
+         }]] | tap:status &exit=$false
+
+✗ 1 - unreasonable expectation
   ---
   actual:
     A: '1'
   expected:
-    A: a
-    B: b
+    expected:
+      A: a
+      B: b
   ...
-✓ 2 - nothing to do
+✓ 2 - simple truth
 
 2 tests, 1 passed, 1 failed
 ▶ $false
@@ -112,5 +128,5 @@ See [example.elv](examples/example.elv).
 
 ## Future work
 
-Multiple results are not yet in fact implemented as TAP subtests (requires TAP14), but simply squished together into
+Tests producing multiple results are not yet in fact implemented as TAP subtests (requires TAP14), but simply squished together into
 a single summary result.
