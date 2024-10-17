@@ -49,11 +49,20 @@ fn run {|tests|
   }
 
   fn write-yaml-block {|doc|
-    echo '  ---'
-    put $doc | to-json | yq --yaml-output --sort-keys | from-lines | each {|line|
-      echo '  '$line
+    var yaml = (var ok = ?(
+      put $doc | to-json | yq --yaml-output --sort-keys --explicit-start --explicit-end | from-lines | {
+        each {|line|
+          put '  '$line
+        } | put [(all)]
+      }
+    ))
+
+    if $ok {
+      echo (str:join "\n" $yaml)
+    } else {
+      echo '  --- YAML block elided because yq not found'
+      echo '  ...'
     }
-    echo '  ...'
   }
 
   fn write-result {|i d ok &a=[&]|

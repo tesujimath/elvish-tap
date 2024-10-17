@@ -48,7 +48,7 @@ In general, TAP output should be piped to a TAP consumer (see below).
 
 ## Dependencies
 
-If YAML blocks are used, then `yq` is required.
+If YAML blocks are used, then `yq` is required, otherwise they are elided.
 
 ## TAP Consumer
 
