@@ -44,18 +44,15 @@ In general, TAP output should be piped to a TAP consumer (see below).
 
 ## Tests
 
-`tap:run` takes a list of tests.  Each test is a map
+`tap:run` takes a list of tests.  Each test is a map with the following keys:
 
- A test comprises a map with the following keys:
+- `d` - a string, the test name or description
+- `f` - a function of no arguments, outputing the results as maps. Multiple results are possible, and correspond to TAP subtests.
+        The map has a mandatory field `ok`, a boolean, whether the test passed.  Any other fields are included as a TAP YAML block.
+- `skip` - test is skipped
+- `todo` - test is not yet implemented, and no attempt is made to invoke `f`
 
- - `d` - a string, the test name or description
- - `f` - a function of no arguments, outputing the results as maps. Multiple results are possible, and correspond to TAP subtests.
-         The map has the following fields, of which only `ok` is mandatory:
-
-       - `ok` - boolean, whether the test passed
-       - `skip` - test is skipped,
-       - `todo` - test is not yet implemented,
-       - `doc` - additional documentation map, included as a TAP YAML block.
+`d` is mandatory, and so is `f` unless `todo` is present.
 
 ## Dependencies
 
