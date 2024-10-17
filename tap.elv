@@ -70,7 +70,7 @@ fn run {|tests|
     }
   }
 
-  fn validate-test-results {|results|
+  fn validate-test-results {|i-test results|
     var i = 0
     for result $results {
       # number results from 1 like TAP numbers tests
@@ -78,15 +78,15 @@ fn run {|tests|
 
       var result-kind = (kind-of $result)
       if (not-eq $result-kind map) {
-        fail 'result '$i' must be map, found '$result-kind': '(to-string $result)
+        fail 'test '$i-test' result '$i' must be map, found '$result-kind': '(to-string $result)
       }
 
       if (not (has-key $result ok)) {
-        fail 'result '$i' missing `ok`'
+        fail 'test '$i-test' result '$i' missing `ok`'
       }
       var ok-kind = (kind-of $result[ok])
       if (not-eq $ok-kind bool) {
-        fail 'result '$i' `ok` must be bool, found '$ok-kind
+        fail 'test '$i-test' result '$i' `ok` must be bool, found '$ok-kind
       }
     }
   }
@@ -149,7 +149,7 @@ fn run {|tests|
       # no results, which we interpret as todo
       write-result $i-test (assoc $test todo $true) [&ok &reason='test function wrote no result']
     } else {
-      validate-test-results $results
+      validate-test-results $i-test $results
 
       if (== (count $results) 1) {
           write-result $i-test $test $results[0]
@@ -179,6 +179,19 @@ fn run {|tests|
   }
 }
 
+# Simple assertion of condition being $true
+fn assert {|condition|
+  put [&ok=$condition]
+}
+
+# Assert that the actual value is as expected
+fn assert-expected {|actual expected|
+  if (eq $actual $expected) {
+    put [&ok]
+  } else {
+    put [&ok=$false &expected=$expected &actual=$actual]
+  }
+}
 
 # Simple TAP consumer to check test success and format output
 # Assumes valid TAP input

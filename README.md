@@ -54,6 +54,20 @@ In general, TAP output should be piped to a TAP consumer (see below).
 
 `d` is mandatory, and so is `f` unless `todo` is present.
 
+## Assertions
+
+elvish-tap provides two simple assertions.
+
+`assert` takes a boolean, and asserts truth.
+
+`assert-expected` takes an actual value and an expected value (in that order), and asserts equality.
+
+For example:
+```
+var actual = [&answer=43]
+tap:assert-expected $actual [&answer=42]
+```
+
 ## Dependencies
 
 If YAML blocks are used, then `yq` is required, otherwise they are elided.

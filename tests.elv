@@ -9,9 +9,14 @@ var actual = (tap:run [
     [&d='skipped failure' &f={ put [&ok=$true] } &skip]
     [&d='not yet implemented' &f={ fail 'oops' } &todo]
     [&d='unexpected failure' &f={ fail 'oops' }]
+    [&d='simple assertion' &f={ tap:assert $true }]
+    [&d='simple assertion of expected value' &f={
+      var actual = [&answer=43]
+      tap:assert-expected $actual [&answer=42]
+    }]
   ] | slurp)
 var expected = 'TAP version 13
-1..5
+1..7
 not ok 1 - simple fail
   ---
   actual:
@@ -26,6 +31,14 @@ not ok 5 - unexpected failure
   ---
   exception:
     Content: oops
+  ...
+ok 6 - simple assertion
+not ok 7 - simple assertion of expected value
+  ---
+  actual:
+    answer: ''43''
+  expected:
+    answer: ''42''
   ...
 '
 
