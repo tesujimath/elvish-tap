@@ -7,14 +7,15 @@ use str
 # `tests` is a list of maps, where each map is a test.
 # A test comprises a map with the following keys:
 # - `d` - a string, the test name or description
-# - `f` - a function of no arguments, outputing one or two results.
-#         The first result is a boolean, $true for success
-#         The optional second result is a map, with the following optional fields:
-#         - `skip` - test is skipped,
-#         - `todo` - test is TODO,
-#         - `doc` - additional documentation map, included as a TAP YAML block.
+# - `f` - a function of no arguments, outputing the results as maps. Multiple results are possible, and correspond to TAP subtests.
+#         The map has the following fields, of which only `ok` is mandatory:
+#
+#       - `ok` - boolean, whether the test passed
+#       - `skip` - test is skipped,
+#       - `todo` - test is not yet implemented,
+#       - `doc` - additional documentation map, included as a TAP YAML block.
 fn run {|tests|
-  fn validate {|tests|
+  fn validate-tests {|tests|
     var tests-kind = (kind-of $tests)
     if (not-eq $tests-kind list) {
       fail 'tests must be list, found '$tests-kind
@@ -48,6 +49,48 @@ fn run {|tests|
     }
   }
 
+  fn validate-test-results {|results|
+    var i = 0
+    for result $results {
+      # number results from 1 like TAP numbers tests
+      set i = (+ 1 $i)
+
+      var result-kind = (kind-of $result)
+      if (not-eq $result-kind map) {
+        fail 'result '$i' must be map, found '$result-kind': '(to-string $result)
+      }
+
+      if (not (has-key $result ok)) {
+        fail 'result '$i' missing `ok`'
+      }
+      var ok-kind = (kind-of $result[ok])
+      if (not-eq $ok-kind bool) {
+        fail 'result '$i' `ok` must be bool, found '$ok-kind
+      }
+
+      if (has-key $result skip) {
+        var skip-kind = (kind-of $result[skip])
+        if (not-eq $skip-kind bool) {
+          fail 'result '$i' `skip` must be bool, found '$skip-kind
+        }
+      }
+
+      if (has-key $result todo) {
+        var todo-kind = (kind-of $result[todo])
+        if (not-eq $todo-kind bool) {
+          fail 'result '$i' `todo` must be bool, found '$todo-kind
+        }
+      }
+
+      if (has-key $result doc) {
+        var doc-kind = (kind-of $result[doc])
+        if (not-eq $doc-kind map) {
+          fail 'result '$i' `doc` must be map, found '$doc-kind
+        }
+      }
+    }
+  }
+
   fn write-yaml-block {|doc|
     var yaml = (var ok = ?(
       put $doc | to-json | yq --yaml-output --sort-keys --explicit-start --explicit-end | from-lines | {
@@ -65,12 +108,12 @@ fn run {|tests|
     }
   }
 
-  fn write-result {|i d ok &a=[&]|
-    var status = (if $ok { put 'ok' } else { put 'not ok' })
+  fn write-result {|i d result|
+    var status = (if $result[ok] { put 'ok' } else { put 'not ok' })
     var directive = (
-      if (has-key $a skip) {
+      if (and (has-key $result skip) $result[skip]) {
         put ' # skip'
-      } elif (has-key $a todo) {
+      } elif (and (has-key $result todo) $result[todo]) {
         put ' # todo'
       } else {
         put ''
@@ -78,8 +121,8 @@ fn run {|tests|
     )
     echo $status' '$i' - '$d$directive
 
-    if (has-key $a doc) {
-      write-yaml-block $a[doc]
+    if (has-key $result doc) {
+      write-yaml-block $result[doc]
     }
   }
 
@@ -87,33 +130,50 @@ fn run {|tests|
     write-result $i $d $false &a=[&doc=$doc]
   }
 
-  validate $tests
+  validate-tests $tests
 
   echo 'TAP version 13'
   echo '1..'(count $tests)
 
-  var i = 0
+  var i-test = 0
   for test $tests {
     # TAP numbers tests from 1
-    set i = (+ 1 $i)
+    set i-test = (+ 1 $i-test)
 
     # TODO catch exception in test
-    var result = ($test[f] | put [(all)])
-    if (== (count $result) 0) {
-      write-fail $i $test[d] &doc=[&reason='test function returned no status']
-    } elif (> (count $result) 2) {
-      write-fail $i $test[d] &doc=[&reason='test function returned '(count $result)' results, expected 1 or 2']
-    } elif (not-eq (kind-of $result[0]) bool) {
-      write-fail $i $test[d] &doc=[&reason='test function returned first result of type '(kind-of $result[0])', expected bool']
+    var results = ($test[f] | put [(all)])
+    if (== (count $results) 0) {
+      write-fail $i-test $test[d] &doc=[&reason='test function returned no results']
+    # } elif (> (count $results) 2) {
+    #   write-fail $i-test $test[d] &doc=[&reason='test function returned '(count $results)' results, expected 1 or 2']
+    # } elif (not-eq (kind-of $results[0]) bool) {
+    #   write-fail $i-test $test[d] &doc=[&reason='test function returned first result of type '(kind-of $results[0])', expected bool']
     } else {
-      if (== (count $result) 2) {
-        if (not-eq (kind-of $result[1]) map) {
-          write-fail $i $test[d] &doc=[&reason='test function returned second result of type '(kind-of $result[1])', expected map']
-        } else {
-          write-result $i $test[d] $result[0] &a=$result[1]
-        }
+      validate-test-results $results
+
+      if (== (count $results) 1) {
+          write-result $i-test $test[d] $results[0]
       } else {
-        write-result $i $test[d] $result[0]
+        # multiple results should be subtests, but for now squish them into a single test
+        var all-ok = $true
+        var all-doc = [&]
+        var i-result = 0
+        for result $results {
+          # number results from 1
+          set i-result = (+ 1 $i-result)
+          if (not $result[ok]) {
+            set all-ok = $false
+          }
+          set all-doc = (assoc $all-doc $i-result $result)
+        }
+
+        var composite-description = $test[d]' ('(count $results)' results)'
+        if $all-ok {
+          write-result $i-test $composite-description [&ok=$all-ok]
+        } else {
+          write-result $i-test $composite-description [&ok=$all-ok &doc=$all-doc]
+        }
+
       }
     }
   }
