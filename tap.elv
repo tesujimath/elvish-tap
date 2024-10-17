@@ -20,7 +20,7 @@ fn run {|tests|
     var i = 0
     for test $tests {
       # TAP numbers tests from 1
-      set i = (+ $i 1)
+      set i = (+ 1 $i)
 
       var test-kind = (kind-of $test)
       if (not-eq $test-kind map) {
@@ -78,7 +78,7 @@ fn run {|tests|
   var i = 0
   for test $tests {
     # TAP numbers tests from 1
-    set i = (+ $i 1)
+    set i = (+ 1 $i)
 
     # TODO catch exception in test
     var result = ($test[f] | put [(all)])
@@ -105,6 +105,7 @@ fn run {|tests|
 
 # Simple TAP consumer to check test success and format output
 # Assumes valid TAP input
+# Returns true if overall outcome is success
 fn status {
   fn find-one {|pattern source|
     { re:find &max=1 $pattern $source ; put [&] } | take 1
@@ -179,6 +180,14 @@ fn status {
     }
   }
 
+  fn n-tests {|n|
+    if (> $n 1) {
+      put $n' tests'
+    } else {
+      put $n' test'
+    }
+  }
+
   var red = "\e[31m"
   var yellow = "\e[33m"
   var green = "\e[32m"
@@ -202,12 +211,16 @@ fn status {
     } elif (==s test-point $parsed[type]) {
       set colour = (
         if (==s skip $parsed[directive]) {
+          set n-skip = (+ 1 $n-skip)
           put $yellow
         } elif (==s todo $parsed[directive]) {
+          set n-todo = (+ 1 $n-todo)
           put $yellow
         } elif $parsed[pass] {
+          set n-pass = (+ 1 $n-pass)
           put $green
         } else {
+          set n-fail = (+ 1 $n-fail)
           put $red
         }
       )
@@ -226,4 +239,26 @@ fn status {
       echo $colour$parsed[text]$normal
     }
   }
+
+  # summary
+  if (> $n-skip 0) {
+    echo $yellow'warning: '(n-tests $n-skip)' skipped'$normal
+  }
+  if (> $n-todo 0) {
+    echo $yellow'warning: '(n-tests $n-todo)' todo'$normal
+  }
+  if (> $n-fail 0) {
+    echo $red'error: '(n-tests $n-fail)' failed'$normal
+  } else {
+    print $green'all tests passed'
+    if (> $n-skip 0) {
+      print ' or skipped'
+    }
+    if (> $n-todo 0) {
+      print ' or todo'
+    }
+    echo $normal
+  }
+
+  put (== $n-fail 0)
 }

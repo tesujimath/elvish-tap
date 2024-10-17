@@ -3,6 +3,9 @@
 use ./tap
 
 echo
+tap:run [[&d='pass' &f={ put $true }] [&d='easy pass' &f={ put $true }]] | tap:status
+
+echo
 tap:run [[&d='simple fail' &f={ put $false }] [&d='easy pass' &f={ put $true }]] | tap:status
 
 echo
