@@ -113,8 +113,9 @@ fn run {|tests|
 
 # Simple TAP consumer to check test success and format output
 # Assumes valid TAP input
-# Returns true if overall outcome is success
-fn status {
+#
+# Exits with status code 1 on test failure, unless inhibited with &exit=false
+fn status {|&exit=true|
   fn find-one {|pattern source|
     { re:find &max=1 $pattern $source ; put [&] } | take 1
   }
@@ -275,5 +276,12 @@ fn status {
   }
   echo $normal
 
-  put (== $n-fail 0)
+  var ok = (== $n-fail 0)
+  if (and $exit (not $ok)) {
+    exit 1
+  }
+
+  if (not $exit) {
+    put $ok
+  }
 }

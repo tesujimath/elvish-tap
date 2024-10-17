@@ -20,23 +20,15 @@ not ok 1 - simple fail
 ok 2 - nothing to do
 ```
 
-In general, TAP output should be piped to a TAP consumer.
+In general, TAP output should be piped to a TAP consumer (see below).
 
 ```
-> tap:run [[&d='simple fail' &f={ put $false [&expected=[&A=a &B=b] &actual=[&A=1]]}] [&d='nothing to do' &f={ put $true }]] | tappy
-F.
-======================================================================
-FAIL: <file=stream>
-- simple fail
-----------------------------------------------------------------------
+> tap:run [[&d='simple fail' &f={ put $false [&expected=[&A=a &B=b] &actual=[&A=1]]}] [&d='nothing to do' &f={ put $true }]] | tap:status &exit=$false
+✗ 1 - simple fail
+✓ 2 - nothing to do
 
-----------------------------------------------------------------------
-Ran 2 tests in 0.000s
-
-FAILED (failures=1)
-Exception: tappy exited with 1
-  [tty 7]:1:126-130: tap:run [[&d='simple fail' &f={ put $false [&expected=[&A=a &B=b] &actual=[&A=1]]}] [&d='nothing to do' &f={ put $true }]] |
- tappy
+2 tests, 1 passed, 1 failed
+▶ $false
 ```
 
 ## Tests
@@ -56,3 +48,9 @@ Exception: tappy exited with 1
 ## Dependencies
 
 If YAML blocks are used, then `yq` is required.
+
+## TAP Consumer
+
+`tap:status` is a simple TAP consumer, which formats test output and, usually, exits with 1 on test failure.
+
+Exiting can be overridden by passind `&exit=$false`, which causes the overall result to be returned as a boolean.
