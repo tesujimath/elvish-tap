@@ -17,16 +17,11 @@
         {
           devShells =
             let
-              inherit (pkgs) bashInteractive elvish yq python3Packages mkShell;
+              inherit (pkgs) bashInteractive elvish yq mkShell;
               ci-packages =
                 [
                   elvish
                   yq
-
-                  # CLI tap consumer
-                  python3Packages.tappy
-                  python3Packages.pyyaml
-                  python3Packages.more-itertools
                 ];
             in
             {
