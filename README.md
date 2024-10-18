@@ -11,7 +11,7 @@ targeting [TAP13](https://testanything.org/tap-version-13-specification.html).
 > tap:run [
     [&d='unreasonable expectation' &f={
       var actual = [&A=1]
-      tap:assert-expected $actual [&expected=[&A=a &B=b]]
+      tap:assert-expected $actual [&A=a &B=b]
     }]
 
     [&d='simple truth' &f={
@@ -25,9 +25,8 @@ not ok 1 - unreasonable expectation
   actual:
     A: '1'
   expected:
-    expected:
-      A: a
-      B: b
+    A: a
+    B: b
   ...
 ok 2 - simple truth
 ```
@@ -38,7 +37,7 @@ In general, TAP output should be piped to a TAP consumer (see below).
 > tap:run [
          [&d='unreasonable expectation' &f={
            var actual = [&A=1]
-           tap:assert-expected $actual [&expected=[&A=a &B=b]]
+           tap:assert-expected $actual [&A=a &B=b]
          }]
 
          [&d='simple truth' &f={
@@ -50,9 +49,8 @@ In general, TAP output should be piped to a TAP consumer (see below).
   actual:
     A: '1'
   expected:
-    expected:
-      A: a
-      B: b
+    A: a
+    B: b
   ...
 ✓ 2 - simple truth
 
