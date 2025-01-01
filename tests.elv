@@ -6,7 +6,7 @@ use ./tap
 var actual = (tap:run [
     [&d='simple fail' &f={ put [&ok=$false &expected=[&A=a] &actual=[&A=b]] }]
     [&d='easy pass' &f={ put [&ok=$true] }]
-    [&d='skipped failure' &f={ put [&ok=$true] } &skip]
+    [&d='skipped failure' &f={ put [&ok=$false] } &skip]
     [&d='not yet implemented' &f={ fail 'oops' } &todo]
     [&d='unexpected failure' &f={ fail 'oops' }]
     [&d='simple assertion' &f={ tap:assert $true }]
@@ -25,8 +25,8 @@ not ok 1 - simple fail
     A: a
   ...
 ok 2 - easy pass
-ok 3 - skipped failure # skip
-ok 4 - not yet implemented # todo
+not ok 3 - skipped failure # skip
+not ok 4 - not yet implemented # todo
 not ok 5 - unexpected failure
   ---
   exception:

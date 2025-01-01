@@ -138,7 +138,8 @@ fn run {|tests|
     set i-test = (+ 1 $i-test)
 
     if (and (has-key $test todo) $test[todo]) {
-      write-result $i-test $test [&ok]
+      # TODO tests are recorded as failure
+      write-result $i-test $test [&ok=$false]
       continue
     }
 

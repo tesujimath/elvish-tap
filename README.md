@@ -65,8 +65,8 @@ In general, TAP output should be piped to a TAP consumer (see below).
 - `d` - a string, the test name or description
 - `f` - a function of no arguments, outputing the results as maps. Multiple results are possible, and correspond to TAP subtests.
         The map has a mandatory field `ok`, a boolean, whether the test passed.  Any other fields are included as a TAP YAML block.
-- `skip` - test is skipped
-- `todo` - test is not yet implemented, and no attempt is made to invoke `f`
+- `skip` - test is run and result is recorded but does not influence overall success
+- `todo` - test is not yet implemented, and no attempt is made to invoke `f`, recoreded as failure without influencing overall success
 
 `d` is mandatory, and so is `f` unless `todo` is present.
 
@@ -96,25 +96,35 @@ Exiting can be overridden by passing `&exit=$false`, which causes the overall re
 
 ## Examples
 
-See [example.elv](examples/example.elv).
+See [raw.elv](examples/raw.elv).
 
 ```
-> ./examples/example.elv
-✗ 1 - bothersome # skip
-✗ 2 - easy pass (2 results)
+> ./examples/raw.elv
+aya> ./examples/raw.elv
+✓ 1 - easy pass
+✗ 2 - skipped bothersome # skip
+✗ 3 - multiple results (2 results)
   ---
   '1':
     ok: true
   '2':
     ok: false
   ...
-✗ 3 - not yet implemented # todo
-✗ 4 - simple fail
-✓ 5 - easy pass
+✗ 4 - not yet implemented # todo
+✗ 5 - simple fail
+✓ 6 - pass with doc
   ---
-  state: enlightened
+  doc:
+    state: enlightened
   ...
-✗ 6 - simple fail # skip
+✗ 7 - fail with reason
+  ---
+  actual:
+    A: b
+  expected:
+    A: a
+  ...
+✗ 8 - simple skipped fail # skip
   ---
   actual:
     A: b
@@ -122,8 +132,43 @@ See [example.elv](examples/example.elv).
     A: a
   ...
 
-6 tests, 1 passed, 2 failed, 2 skipped, 1 todo
+8 tests, 2 passed, 3 failed, 2 skipped, 1 todo
 ▶ $false
+```
+
+### Assertions
+
+```
+tap:run [
+  [&d='easy pass' &f={ assert $true }]
+  [&d='simple fail' &f={ assert $false}]
+  [&d='skipped bothersome' &f={ assert $false } &skip]
+  [&d='multiple results' &f={ assert $true; assert $false }]
+  [&d='fail expected' &f={ assert-expected [&A=b] [&A=a] }]
+]
+```
+
+output is:
+```
+✓ 1 - easy pass
+✗ 2 - simple fail
+✗ 3 - skipped bothersome # skip
+✗ 4 - multiple results (2 results)
+  ---
+  '1':
+    ok: true
+  '2':
+    ok: false
+  ...
+✗ 5 - fail expected
+  ---
+  actual:
+    A: b
+  expected:
+    A: a
+  ...
+
+5 tests, 1 passed, 3 failed, 1 skipped
 ```
 
 ## Future work
