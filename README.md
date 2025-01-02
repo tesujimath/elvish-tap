@@ -42,7 +42,7 @@ In general, TAP output should be piped to a TAP consumer (see below).
 
          [&d='simple truth' &f={
            tap:assert $true
-         }]] | tap:status &exit=$false
+         }]] | tap:format
 
 ✗ 1 - unreasonable expectation
   ---
@@ -66,7 +66,7 @@ In general, TAP output should be piped to a TAP consumer (see below).
 - `f` - a function of no arguments, outputing the results as maps. Multiple results are possible, and correspond to TAP subtests.
         The map has a mandatory field `ok`, a boolean, whether the test passed.  Any other fields are included as a TAP YAML block.
 - `skip` - test is run and result is recorded but does not influence overall success
-- `todo` - test is not yet implemented, and no attempt is made to invoke `f`, recoreded as failure without influencing overall success
+- `todo` - test is not yet implemented, and no attempt is made to invoke `f`, recorded as failure without influencing overall success
 
 `d` is mandatory, and so is `f` unless `todo` is present.
 
@@ -93,6 +93,8 @@ If YAML blocks are used, then `yq` is required, otherwise they are elided.
 `tap:status` is a simple TAP consumer, which formats test output and, usually, exits with 1 on test failure.
 
 Exiting can be overridden by passing `&exit=$false`, which causes the overall result to be returned as a boolean.
+
+Alternatively, `tap:format` is a TAP consumer which formats test output and returns a boolean, and so is more convenient for use within the Elvish REPL.
 
 ## Examples
 
@@ -137,6 +139,8 @@ aya> ./examples/raw.elv
 ```
 
 ### Assertions
+
+See [assert.elv](examples/assert.elv).
 
 ```
 tap:run [

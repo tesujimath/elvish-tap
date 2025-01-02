@@ -2,7 +2,7 @@
 
 use ../tap
 
-fn assert-tests {
+fn run-tests {
   var assert~ = $tap:assert~
   var assert-expected~ = $tap:assert-expected~
   tap:run [
@@ -14,4 +14,4 @@ fn assert-tests {
   ]
 }
 
-assert-tests | tap:status &exit=$false
+run-tests | tap:format

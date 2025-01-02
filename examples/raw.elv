@@ -2,7 +2,7 @@
 
 use ../tap
 
-fn raw-tests {
+fn run-tests {
   tap:run [
     [&d='easy pass' &f={ put [&ok=$true] }]
     [&d='skipped bothersome' &f={ put [&ok=$false] } &skip]
@@ -15,4 +15,4 @@ fn raw-tests {
   ]
 }
 
-raw-tests | tap:status &exit=$false
+run-tests | tap:format

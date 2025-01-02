@@ -13,8 +13,8 @@ use str
 # - `todo` - test is not yet implemented
 #
 # `d` is mandatory, and so is `f` unless `todo` is present.
-fn run {|tests|
-  fn validate-tests {|tests|
+fn run { |tests|
+  fn validate-tests { |tests|
     var tests-kind = (kind-of $tests)
     if (not-eq $tests-kind list) {
       fail 'tests must be list, found '$tests-kind
@@ -70,7 +70,7 @@ fn run {|tests|
     }
   }
 
-  fn validate-test-results {|i-test results|
+  fn validate-test-results { |i-test results|
     var i = 0
     for result $results {
       # number results from 1 like TAP numbers tests
@@ -91,10 +91,10 @@ fn run {|tests|
     }
   }
 
-  fn write-yaml-block {|block|
+  fn write-yaml-block { |block|
     var yaml = (var ok = ?(
       put $block | to-json | yq --yaml-output --sort-keys --explicit-start --explicit-end | from-lines | {
-        each {|line|
+        each { |line|
           put '  '$line
         } | put [(all)]
       }
@@ -108,7 +108,7 @@ fn run {|tests|
     }
   }
 
-  fn write-result {|i test result|
+  fn write-result { |i test result|
     var status = (if $result[ok] { put 'ok' } else { put 'not ok' })
     var directive = (
       if (and (has-key $test skip) $test[skip]) {
@@ -181,12 +181,12 @@ fn run {|tests|
 }
 
 # Simple assertion of condition being $true
-fn assert {|condition|
+fn assert { |condition|
   put [&ok=$condition]
 }
 
 # Assert that the actual value is as expected
-fn assert-expected {|actual expected|
+fn assert-expected { |actual expected|
   if (eq $actual $expected) {
     put [&ok]
   } else {
@@ -198,12 +198,12 @@ fn assert-expected {|actual expected|
 # Assumes valid TAP input
 #
 # Exits with status code 1 on test failure, unless inhibited with &exit=false
-fn status {|&exit=true|
-  fn find-one {|pattern source|
+fn status { |&exit=true|
+  fn find-one { |pattern source|
     { re:find &max=1 $pattern $source ; put [&] } | take 1
   }
 
-  fn parse-line {|line|
+  fn parse-line { |line|
     if (str:has-prefix $line 'TAP version') {
       put [&type=version]
     } else {
@@ -272,7 +272,7 @@ fn status {|&exit=true|
     }
   }
 
-  fn plural {|n|
+  fn plural { |n|
     if (== $n 1) {
       put ''
     } else {
@@ -296,7 +296,7 @@ fn status {|&exit=true|
   var bail_out = $false
   var colour = $normal
 
-  from-lines | each {|line|
+  from-lines | each { |line|
     var parsed = (parse-line $line)
 
     if (==s plan $parsed[type]) {
@@ -367,4 +367,12 @@ fn status {|&exit=true|
   if (not $exit) {
     put $ok
   }
+}
+
+# Simple TAP consumer to check test success and format output
+# Assumes valid TAP input
+#
+# Returns test success as a boolean
+fn format {
+  status &exit=$false
 }
